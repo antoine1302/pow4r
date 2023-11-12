@@ -24,7 +24,7 @@ void display_grid(unsigned (*grid)[GRID_WIDTH])
             if (grid[i][j] > 0) {
                 unsigned int player_number = grid[i][j];
                 for (unsigned i = 0; i < player_amount; i++) {
-                    if(player_number == player_collection[i].id){
+                    if(player_number == player_collection[i].id) {
                         printf(" %c |", player_collection[i].token_symbol);
                         break;
                     }

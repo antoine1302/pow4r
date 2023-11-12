@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "grid.h"
 #include "player.h"
 
-struct player player_collection[] = {{1, PLAYER_1_TOKEN}, {2, PLAYER_2_TOKEN}};
+struct player player_collection[] = {{100, PLAYER_1_TOKEN}, {200, PLAYER_2_TOKEN}};
 unsigned player_amount = sizeof player_collection / sizeof (struct player);
-static _Bool is_column_valid(unsigned, unsigned (*grid)[GRID_WIDTH]);
+static _Bool assert_column_valid(unsigned, unsigned (*grid)[GRID_WIDTH]);
+static _Bool clear_buffer(FILE *fp);
 
 int main()
 {
@@ -14,22 +16,26 @@ int main()
     while (1) {
         for (size_t i = 0; i < player_amount; i++) {
 
+            system("clear");
             display_grid(grid);
             printf("Player %u: ", player_collection[i].id);
-            system("clear");
             _Bool is_input_valid = 0;
             unsigned column = 0;
 
             do {
                 unsigned input = scanf("%u", &column);
 
-                if(input < 1) {
-                    puts("Failed to get column. Please retry.");
-                    // clear buffer
+                if (!clear_buffer(stdin)) {
+                    fputs("Failed to clear stdin buffer\n", stderr);
+                    return EXIT_FAILURE;
+                }
+
+                if (input != 1) {
+                    fputs("Failed to get column. Please retry.\n", stderr);
                     continue;
                 }
 
-                if(!is_column_valid(input, grid)) {
+                if (!assert_column_valid(column, grid)) {
                     continue;
                 }
 
@@ -51,19 +57,30 @@ int main()
     return EXIT_SUCCESS;
 }
 
-_Bool is_column_valid(unsigned column, unsigned (*grid)[GRID_WIDTH])
+_Bool assert_column_valid(unsigned column, unsigned (*grid)[GRID_WIDTH])
 {
     // check for out of range column
     if(column < 1 || column > GRID_WIDTH) {
-        puts("Out of range value");
+        fputs("Out of range value\n", stderr);
         return 0;
     }
     // check if the column is already full
-    if(grid[GRID_HEIGTH -1][GRID_WIDTH -1] > 0) {
-        puts("Column already full");
+    if(grid[0][column - 1] > 0) {
+        fputs("Column already full\n", stderr);
         return 0;
     }
 
     return 1;
+}
+
+_Bool clear_buffer(FILE *fp)
+{
+    int c = 0;
+
+    do {
+        c = fgetc(fp);
+    } while(c != '\n' && c != EOF);
+
+    return ferror(fp) > 0 ? 0 : 1;
 }
  

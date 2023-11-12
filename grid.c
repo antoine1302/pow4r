@@ -2,14 +2,15 @@
 #include <stdio.h>
 #include <stdio.h>
 #include "grid.h"
-
-#define GRID_WIDTH 7
-#define GRID_HEIGTH 6
+#include "player.h"
 
 static void display_header();
 static void display_line();
 
-void display_grid()
+extern struct player player_collection[];
+extern unsigned player_amount;
+
+void display_grid(unsigned (*grid)[GRID_WIDTH])
 {
     display_header();
 
@@ -20,11 +21,23 @@ void display_grid()
         fputs("|", stdout);
 
         for (unsigned j = 0; j < GRID_WIDTH; j++) {
-            fputs("   |", stdout);    
+            if (grid[i][j] > 0) {
+                unsigned int player_number = grid[i][j];
+                for (unsigned i = 0; i < player_amount; i++) {
+                    if(player_number == player_collection[i].id){
+                        printf(" %c |", player_collection[i].token_symbol);
+                        break;
+                    }
+                }
+            } else {
+                fputs("   |", stdout);
+            }
         }
 
         fputs("\n", stdout);
     }
+
+    display_line();
 
     display_header();
 }

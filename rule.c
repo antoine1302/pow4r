@@ -22,7 +22,7 @@ _Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position)
     }
 
     // verify vertically
-    for (unsigned i = position->y; i < GRID_HEIGTH; i++) {
+    for (int i = position->y; i < GRID_HEIGTH; i++) {
         if (grid[i][position->x] == player_id) {
             aligned_count++;
             if(aligned_count >= WIN_ALIGNMENT) {
@@ -33,6 +33,49 @@ _Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position)
         }
     }
 
+    // verify oblique
+    struct position start_position = { position->x, position->y };
+    while (start_position.x < GRID_WIDTH -1 && start_position.y < GRID_HEIGTH -1) {
+        start_position.x++;
+        start_position.y++;
+    }
+
+    aligned_count = 0;
+
+    while (start_position.x >= 0 && start_position.y >= 0) {
+        if(player_id == grid[start_position.x][start_position.y]) {
+            aligned_count++;
+            if(aligned_count >= WIN_ALIGNMENT) {
+                return 1;
+            }
+        } else {
+            aligned_count = 0;
+        }
+        start_position.x--;
+        start_position.y--;
+    }
+
+    start_position.x = position->x;
+    start_position.y = position->y;
+    while (start_position.x > 0 && start_position.y < GRID_HEIGTH -1) {
+        start_position.x--;
+        start_position.y++;
+    }
+
+    aligned_count = 0;
+
+    while (start_position.x < GRID_WIDTH && start_position.y >= 0) {
+        if(player_id == grid[start_position.x][start_position.y]) {
+            aligned_count++;
+            if(aligned_count >= WIN_ALIGNMENT) {
+                return 1;
+            }
+        } else {
+            aligned_count = 0;
+        }
+        start_position.x++;
+        start_position.y--;
+    }
 
     return 0;
 }

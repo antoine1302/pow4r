@@ -3,8 +3,8 @@
 
 struct position
 {
-    unsigned int x;
-    unsigned int y;
+    int x;
+    int y;
 };
 
 #endif

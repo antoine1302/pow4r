@@ -59,13 +59,15 @@ int main()
 
             if (verify_end(grid, &last_position)) {
                 winner = player_collection[i];
-                goto endgame;
+                system("clear");
+                display_grid(grid);
+                goto winner;
             }
         }
     }
 
-endgame:
-    printf("Player %u is the winner", winner.id);
+winner:
+    printf("Player %u is the winner\n", winner.id);
 
     return EXIT_SUCCESS;
 }

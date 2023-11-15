@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "rule.h": "c",
+        "position.h": "c"
+    }
+}

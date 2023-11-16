@@ -4,7 +4,7 @@
 #include "grid.h"
 #include "position.h"
 
-_Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position)
+_Bool verify_winner(unsigned (*grid)[GRID_WIDTH], struct position *position)
 {
     unsigned player_id = grid[position->y][position->x];
     unsigned aligned_count = 0;
@@ -21,6 +21,8 @@ _Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position)
         }
     }
 
+    aligned_count = 0;
+
     // verify vertically
     for (int i = position->y; i < GRID_HEIGTH; i++) {
         if (grid[i][position->x] == player_id) {
@@ -32,6 +34,8 @@ _Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position)
             aligned_count = 0;
         }
     }
+
+    aligned_count = 0;
 
     // verify oblique
     struct position start_position = { position->x, position->y };
@@ -78,6 +82,19 @@ _Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position)
     }
 
     return 0;
+}
+
+_Bool verify_draw(unsigned (*grid)[GRID_WIDTH])
+{
+    for(unsigned i = 0; i < GRID_HEIGTH; i++) {
+        for (unsigned j = 0; j < GRID_WIDTH; j++) {
+            if (grid[i][j] == 0) {
+                return 0;
+            }
+        }
+    }
+
+    return 1;
 }
 
 

@@ -7,6 +7,7 @@
 
 #define WIN_ALIGNMENT 4
 
-extern _Bool verify_end(unsigned (*grid)[GRID_WIDTH], struct position *position);
+extern _Bool verify_winner(unsigned (*grid)[GRID_WIDTH], struct position *position);
+extern _Bool verify_draw(unsigned (*grid)[GRID_WIDTH]);
 
 #endif

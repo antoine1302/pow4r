@@ -57,17 +57,22 @@ int main()
                 }
             }
 
-            if (verify_end(grid, &last_position)) {
+            if (verify_winner(grid, &last_position)) {
                 winner = player_collection[i];
                 system("clear");
                 display_grid(grid);
-                goto winner;
+                printf("Player %u is the winner\n", winner.id);
+                return EXIT_SUCCESS;
+            }
+
+            if(verify_draw(grid)){
+                system("clear");
+                display_grid(grid);
+                printf("Draw\n");
+                return EXIT_SUCCESS;
             }
         }
     }
-
-winner:
-    printf("Player %u is the winner\n", winner.id);
 
     return EXIT_SUCCESS;
 }

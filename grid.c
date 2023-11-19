@@ -7,9 +7,6 @@
 static void display_header();
 static void display_line();
 
-extern struct player player_collection[];
-extern unsigned player_amount;
-
 void display_grid(unsigned (*grid)[GRID_WIDTH])
 {
     display_header();

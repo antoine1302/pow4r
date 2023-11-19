@@ -11,4 +11,7 @@ struct player
     char token_symbol;
 };
 
+extern struct player player_collection[];
+extern unsigned player_amount;
+
 #endif

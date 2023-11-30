@@ -5,48 +5,35 @@
 #include "player.h"
 #include "position.h"
 #include "rule.h"
+#include "robot.h"
 
 struct player player_collection[] = {{100, PLAYER_1_TOKEN}, {200, PLAYER_2_TOKEN}};
 unsigned player_amount = sizeof player_collection / sizeof (struct player);
+static void get_user_input(unsigned*, unsigned (*grid)[GRID_WIDTH], unsigned);
 static _Bool assert_column_valid(unsigned, unsigned (*grid)[GRID_WIDTH]);
 static _Bool clear_buffer(FILE *fp);
+static _Bool is_multiplayer();
 
 int main()
 {
     unsigned grid[GRID_HEIGTH][GRID_WIDTH] = {0};
     struct player winner;
+    _Bool multiplayer = is_multiplayer();
 
     while (1) {
         for (size_t i = 0; i < player_amount; i++) {
 
             system("clear");
             display_grid(grid);
-            _Bool is_input_valid = 0;
+            
             unsigned column = 0;
             struct position last_position = {0, 0};
 
-            do {
-
-                printf("Player %u: ", player_collection[i].id);
-                unsigned input = scanf("%u", &column);
-
-                if (!clear_buffer(stdin)) {
-                    fputs("Failed to clear stdin buffer\n", stderr);
-                    return EXIT_FAILURE;
-                }
-
-                if (input != 1) {
-                    fputs("Failed to get column. Please retry.\n", stderr);
-                    continue;
-                }
-
-                if (!assert_column_valid(column, grid)) {
-                    continue;
-                }
-
-                is_input_valid = 1;
-
-            } while(!is_input_valid);
+            if (!multiplayer && i == 1) {
+                get_robot_input(&column, grid);
+            } else {
+                get_user_input(&column, grid, player_collection[i].id);
+            }
 
             for(int j = GRID_HEIGTH - 1; j >= 0; j--) {
                 if (grid[j][column - 1] < 1) {
@@ -102,5 +89,53 @@ _Bool clear_buffer(FILE *fp)
     } while(c != '\n' && c != EOF);
 
     return ferror(fp) > 0 ? 0 : 1;
+}
+
+_Bool is_multiplayer()
+{
+    unsigned player_count = 0;
+    
+    while (player_count < 1 || player_count > 2) {
+        printf("Single player (type: 1) or multiplayer (type: 2)\n");
+        int ret = scanf("%u", &player_count);
+
+        if (!clear_buffer(stdin)) {
+            fputs("Failed to clear stdin buffer\n", stderr);
+            exit(EXIT_FAILURE);
+        }
+
+        if (ret != 1) {
+            printf("Invalid input\n");
+        }
+    }
+
+    return player_count == 2 ? 1 : 0;
+}
+
+void get_user_input(unsigned *column, unsigned (*grid)[GRID_WIDTH], unsigned player_id)
+{
+    _Bool is_input_valid = 0;
+
+    do {
+        printf("Player %u: ", player_id);
+        unsigned input = scanf("%u", column);
+
+        if (!clear_buffer(stdin)) {
+            fputs("Failed to clear stdin buffer\n", stderr);
+            exit(EXIT_FAILURE);
+        }
+
+        if (input != 1) {
+            fputs("Failed to get column. Please retry.\n", stderr);
+            continue;
+        }
+
+        if (!assert_column_valid(*column, grid)) {
+            continue;
+        }
+
+        is_input_valid = 1;
+
+    } while(!is_input_valid);
 }
  

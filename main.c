@@ -52,7 +52,7 @@ int main()
                 return EXIT_SUCCESS;
             }
 
-            if(verify_draw(grid)){
+            if (verify_draw(grid)) {
                 system("clear");
                 display_grid(grid);
                 printf("Draw\n");

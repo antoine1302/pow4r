@@ -6,8 +6,8 @@
 #include "rule.h"
 #include "random.h"
 
-static unsigned get_max_align(struct position *, unsigned (*)[GRID_WIDTH]);
 static int get_best_column(int *);
+static unsigned get_max_align(unsigned (*grid)[GRID_WIDTH], struct position *);
 
 void get_robot_input(unsigned *column, unsigned (*grid)[GRID_WIDTH])
 {
@@ -15,70 +15,77 @@ void get_robot_input(unsigned *column, unsigned (*grid)[GRID_WIDTH])
 
     for (unsigned i = 0; i < GRID_WIDTH; i++) {
         for (unsigned j = 0; j < GRID_HEIGTH; j++) {
-            if(grid[i][j] == 0 && j < GRID_HEIGTH - 1) {
-                continue;
-            } else if (j == 0) {
-                break;
+            if (grid[j][i] == 0) {
+                // reached the bottom of the column
+                if (j == 5) {
+                    max_align_per_column[i] =  get_max_align(grid, &(struct position){.x = i, .y = j});
+                    break;   
+                } else {
+                    continue;
+                }
             } else {
-                max_align_per_column[i] = get_max_align(&(struct position) { .x = i, .y = j }, grid);
-                break;
+                // column is full 
+                if (j == 0) {
+                    break;
+                } else {
+                    max_align_per_column[i] =  get_max_align(grid, &(struct position){.x = i, .y = j -1});
+                    break;   
+                }
             }
         }
     }
 
-    *column = get_best_column(max_align_per_column);
+    *column = get_best_column(max_align_per_column) + 1;
 }
 
-unsigned get_max_align(struct position *pos, unsigned (*grid)[GRID_WIDTH])
+unsigned get_max_align(unsigned (*grid)[GRID_WIDTH], struct position *position)
 {
-    unsigned max_align = 1;
-    unsigned max_align_vertical = 1;
-    unsigned max_align_horizontal = 1;
-    // unsigned max_align_oblique_to_right = 1;
-    // unsigned max_align_oblique_to_left = 1;
+    unsigned max_align_vertical = 0;
+    unsigned prev_id = 0;
 
-    unsigned player_id = grid[pos->x][pos->y];
-
-    // column is empty
-    if (player_id != 0) {
-        // check max align vertical
-        for (unsigned i = pos->y + 1; i < GRID_HEIGTH; i++) {
-            if (player_id == grid[pos->x][i]) {
-                max_align_vertical++;
-            } else {
-                break;
-            }
-        }
-    }
-
-    if (max_align_vertical > max_align) {
-        max_align = max_align_vertical;
-    }
-
-    //check max align horizontal
-    for (unsigned i = pos->x + 1; i < GRID_WIDTH; i++) {
-        if (player_id == grid[i][pos->y]) {
-            max_align_horizontal++;
-        } else {
+    // align vertical
+    for (unsigned i = position->y + 1; i < GRID_HEIGTH; i++) {
+        if (prev_id != 0 && grid[i][position->x] != prev_id) {
             break;
         }
+
+        prev_id = grid[i][position->x];
+        max_align_vertical++;
     }
 
-    for (int i = pos->x - 1; i > 0; i--) {
-        if (player_id == grid[i][pos->y]) {
-            max_align_horizontal++;
-        } else {
+    unsigned max_align = max_align_vertical;
+    unsigned max_align_horizontal = 0, max_align_horizontal_right = 0, max_align_horizontal_left = 0;
+    prev_id = 0;
+
+    // align horizontal to right
+    for (int i = position->x + 1; i < GRID_WIDTH; i++) {
+        if ((prev_id != 0 && grid[position->y][i] != prev_id) || grid[position->y][i] == 0) {
             break;
         }
+    
+        prev_id = grid[position->y][i];
+        max_align_horizontal_right++;
     }
 
-    if (max_align_horizontal > max_align) {
+    // align horizontal to left
+    for (int i = position->x - 1; i >= 0; i--) {
+        if ((prev_id != 0 && grid[position->y][i] != prev_id) || grid[position->y][i] == 0) {
+            break;
+        }
+    
+        prev_id = grid[position->y][i];
+        max_align_horizontal_left++;
+    }
+
+    max_align_horizontal = max_align_horizontal_left + max_align_horizontal_right;
+
+    if (max_align < max_align_horizontal) {
         max_align = max_align_horizontal;
     }
 
-    //check max align oblique right
-    //check max align oblique left
 
+    // align oblique first
+    // align oblique second
 
     return max_align;
 }
@@ -86,20 +93,20 @@ unsigned get_max_align(struct position *pos, unsigned (*grid)[GRID_WIDTH])
 int get_best_column(int *max_align_per_column)
 {
     for (int align_count = WIN_ALIGNMENT; align_count > 0; align_count--) {
-        int align_count = 0;
+        int count = 0;
         int column_per_align[GRID_WIDTH] = {0};
         for (int j = 0; j < GRID_WIDTH; j++) {
             if (max_align_per_column[j] >= align_count) {
-                column_per_align[align_count++] = j;
+                column_per_align[count++] = j;
             }
         }
 
-        if (align_count > 0) {
-            if (align_count == 1) {
-                return column_per_align[1];
+        if (count > 0) {
+            if (count == 1) {
+                return column_per_align[0];
             }
 
-            return random_int(0, align_count - 1);
+            return column_per_align[random_int(0, count - 1)];
         }
     }
 

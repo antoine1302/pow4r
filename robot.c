@@ -53,10 +53,41 @@ unsigned get_max_align(unsigned (*grid)[GRID_WIDTH], struct position *position)
         max_align_vertical++;
     }
 
-    return max_align_vertical;
-    // align horizontal
+    unsigned max_align = max_align_vertical;
+    unsigned max_align_horizontal = 0, max_align_horizontal_right = 0, max_align_horizontal_left = 0;
+    prev_id = 0;
+
+    // align horizontal to right
+    for (int i = position->x + 1; i < GRID_WIDTH; i++) {
+        if ((prev_id != 0 && grid[position->y][i] != prev_id) || grid[position->y][i] == 0) {
+            break;
+        }
+    
+        prev_id = grid[position->y][i];
+        max_align_horizontal_right++;
+    }
+
+    // align horizontal to left
+    for (int i = position->x - 1; i >= 0; i--) {
+        if ((prev_id != 0 && grid[position->y][i] != prev_id) || grid[position->y][i] == 0) {
+            break;
+        }
+    
+        prev_id = grid[position->y][i];
+        max_align_horizontal_left++;
+    }
+
+    max_align_horizontal = max_align_horizontal_left + max_align_horizontal_right;
+
+    if (max_align < max_align_horizontal) {
+        max_align = max_align_horizontal;
+    }
+
+
     // align oblique first
     // align oblique second
+
+    return max_align;
 }
 
 int get_best_column(int *max_align_per_column)
@@ -72,7 +103,7 @@ int get_best_column(int *max_align_per_column)
 
         if (count > 0) {
             if (count == 1) {
-                return column_per_align[1];
+                return column_per_align[0];
             }
 
             return column_per_align[random_int(0, count - 1)];

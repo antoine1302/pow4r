@@ -7,7 +7,7 @@
 #include "rule.h"
 #include "robot.h"
 
-struct player player_collection[] = {{100, PLAYER_1_TOKEN}, {200, PLAYER_2_TOKEN}};
+struct player player_collection[] = {{PLAYER_1_ID, PLAYER_1_TOKEN}, {PLAYER_2_ID, PLAYER_2_TOKEN}};
 unsigned player_amount = sizeof player_collection / sizeof (struct player);
 static void get_user_input(unsigned*, unsigned (*grid)[GRID_WIDTH], unsigned);
 static _Bool assert_column_valid(unsigned, unsigned (*grid)[GRID_WIDTH]);

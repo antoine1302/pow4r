@@ -22,5 +22,5 @@ int random_int(int min, int max)
 
 double get_random()
 {
-    return rand() / (RAND_MAX  + 1.);
+    return rand() / ((double)RAND_MAX  + 1.);
 }

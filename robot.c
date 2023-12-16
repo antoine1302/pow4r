@@ -1,114 +1,119 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "robot.h"
 #include "grid.h"
 #include "position.h"
 #include "rule.h"
+#include "player.h"
 #include "random.h"
 
-static int get_best_column(int *);
-static unsigned get_max_align(unsigned (*grid)[GRID_WIDTH], struct position *);
+static unsigned findMaxAlignmentByPosition(struct position *, unsigned, unsigned (*)[GRID_WIDTH]);
+static unsigned findMaxAlignmentByDirection(struct position, int , int, unsigned, unsigned (*)[GRID_WIDTH]);
+static _Bool isPositionValid(struct position *);
+static unsigned get_max(int, ...);
 
 void get_robot_input(unsigned *column, unsigned (*grid)[GRID_WIDTH])
 {
-    int max_align_per_column[GRID_WIDTH] = {0};
+    struct position current_pos = {.x = 0, .y = 0};
+    unsigned max_alignment = 0, global_max_alignment = 0, count_per_alignment = 0;
+    unsigned best_column[GRID_WIDTH] = {0};
 
     for (unsigned i = 0; i < GRID_WIDTH; i++) {
-        for (unsigned j = 0; j < GRID_HEIGTH; j++) {
-            if (grid[j][i] == 0) {
-                // reached the bottom of the column
-                if (j == 5) {
-                    max_align_per_column[i] =  get_max_align(grid, &(struct position){.x = i, .y = j});
-                    break;   
-                } else {
-                    continue;
-                }
-            } else {
-                // column is full 
-                if (j == 0) {
-                    break;
-                } else {
-                    max_align_per_column[i] =  get_max_align(grid, &(struct position){.x = i, .y = j -1});
-                    break;   
-                }
+        // column is already full
+        if (grid[0][i] != 0) {
+            continue;
+        }
+
+        current_pos.x = i;
+
+        for (int height = GRID_HEIGTH -1; height >= 0; height--) {
+            if (grid[height][i] == 0) {
+                current_pos.y = height;
+                break;
             }
+        }
+
+        max_alignment = findMaxAlignmentByPosition(&current_pos, PLAYER_2_ID, grid);
+
+        if (max_alignment >= WIN_ALIGNMENT) {
+            *column = i+1;
+            return;
+        }
+
+        max_alignment = get_max(2, max_alignment, findMaxAlignmentByPosition(&current_pos, PLAYER_1_ID, grid));
+
+        if (max_alignment >= global_max_alignment)
+        {
+            if (max_alignment > global_max_alignment)
+            {
+                count_per_alignment = 0;
+                global_max_alignment = max_alignment;
+            }
+
+            best_column[count_per_alignment++] = i;
         }
     }
 
-    *column = get_best_column(max_align_per_column) + 1;
+    *column = best_column[random_int(0, (int)count_per_alignment - 1)] + 1;
 }
 
-unsigned get_max_align(unsigned (*grid)[GRID_WIDTH], struct position *position)
+unsigned findMaxAlignmentByPosition(struct position *pos, unsigned player_id, unsigned (*grid)[GRID_WIDTH])
 {
-    unsigned max_align_vertical = 0;
-    unsigned prev_id = 0;
-
-    // align vertical
-    for (unsigned i = position->y + 1; i < GRID_HEIGTH; i++) {
-        if (prev_id != 0 && grid[i][position->x] != prev_id) {
-            break;
-        }
-
-        prev_id = grid[i][position->x];
-        max_align_vertical++;
-    }
-
-    unsigned max_align = max_align_vertical;
-    unsigned max_align_horizontal = 0, max_align_horizontal_right = 0, max_align_horizontal_left = 0;
-    prev_id = 0;
-
-    // align horizontal to right
-    for (int i = position->x + 1; i < GRID_WIDTH; i++) {
-        if ((prev_id != 0 && grid[position->y][i] != prev_id) || grid[position->y][i] == 0) {
-            break;
-        }
-    
-        prev_id = grid[position->y][i];
-        max_align_horizontal_right++;
-    }
-
-    // align horizontal to left
-    for (int i = position->x - 1; i >= 0; i--) {
-        if ((prev_id != 0 && grid[position->y][i] != prev_id) || grid[position->y][i] == 0) {
-            break;
-        }
-    
-        prev_id = grid[position->y][i];
-        max_align_horizontal_left++;
-    }
-
-    max_align_horizontal = max_align_horizontal_left + max_align_horizontal_right;
-
-    if (max_align < max_align_horizontal) {
-        max_align = max_align_horizontal;
-    }
-
-
-    // align oblique first
-    // align oblique second
-
-    return max_align;
+    return  get_max(
+            4,
+            findMaxAlignmentByDirection(*pos, 1, 0, player_id, grid),
+            findMaxAlignmentByDirection(*pos, 0, 1, player_id, grid) + findMaxAlignmentByDirection(*pos, 0, -1, player_id, grid) - 1,
+            findMaxAlignmentByDirection(*pos, 1, 1, player_id, grid) + findMaxAlignmentByDirection(*pos, -1, -1, player_id, grid) - 1,
+            findMaxAlignmentByDirection(*pos, 1, -1, player_id, grid) + findMaxAlignmentByDirection(*pos, -1, 1, player_id, grid) - 1
+        );
 }
 
-int get_best_column(int *max_align_per_column)
+unsigned findMaxAlignmentByDirection(struct position pos, int move_vertical, int move_horizontal, unsigned player_id,  unsigned (*grid)[GRID_WIDTH])
 {
-    for (int align_count = WIN_ALIGNMENT; align_count > 0; align_count--) {
-        int count = 0;
-        int column_per_align[GRID_WIDTH] = {0};
-        for (int j = 0; j < GRID_WIDTH; j++) {
-            if (max_align_per_column[j] >= align_count) {
-                column_per_align[count++] = j;
-            }
+    pos.x += move_horizontal;
+    pos.y += move_vertical;
+    unsigned max_alignment = 1;
+
+    while (isPositionValid(&pos)) {
+        if (grid[pos.y][pos.x] == player_id) {
+            max_alignment++;
+        } else {
+            break;
         }
 
-        if (count > 0) {
-            if (count == 1) {
-                return column_per_align[0];
-            }
+        pos.x += move_horizontal;
+        pos.y += move_vertical;
+    }
 
-            return column_per_align[random_int(0, count - 1)];
+    return max_alignment;
+}
+
+_Bool isPositionValid(struct position *pos)
+{
+    if (pos->x >= GRID_WIDTH || pos->x < 0) {
+        return 0;
+    } else if (pos->y >= GRID_HEIGTH || pos->y < 0) {
+        return 0;
+    }
+
+    return 1;
+}
+
+unsigned get_max(int num, ...)
+{
+    va_list args;
+    va_start(args, num);
+    unsigned max = va_arg(args, unsigned);
+
+    for (int i = 1; i < num; i++) {
+        unsigned current_val = va_arg(args, unsigned);
+        if (current_val > max) {
+            max = current_val;
         }
     }
 
-    return 0;
+    va_end(args);
+
+    return max;
 }

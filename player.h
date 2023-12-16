@@ -5,6 +5,9 @@
 #define PLAYER_1_TOKEN ('X')
 #define PLAYER_2_TOKEN ('O')
 
+#define PLAYER_1_ID (100)
+#define PLAYER_2_ID (200)
+
 struct player 
 {
     unsigned int id;

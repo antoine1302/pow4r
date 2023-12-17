@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "grid.h"
 #include "player.h"
 #include "position.h"
@@ -115,27 +116,47 @@ _Bool is_multiplayer()
 void get_user_input(unsigned *column, unsigned (*grid)[GRID_WIDTH], unsigned player_id)
 {
     _Bool is_input_valid = 0;
+    char input_char = ' ';
 
     do {
         printf("Player %u: ", player_id);
-        unsigned input = scanf("%u", column);
+
+        
+        if (scanf("%u", column) != 1) {
+            if (scanf("%c", &input_char) != 1) {
+                fputs("Failed to get input. Please retry.\n", stderr);
+                sleep(3);
+            } else {
+                switch(input_char){
+                    case 's':
+                    case 'S':
+                        printf("you printed a char\n");
+                        // save
+                        break;
+                    case 'Q':
+                    case 'q':
+                        printf("you printed a char\n");
+                        // quit
+                        break;
+                    case 'L':
+                    case 'l':
+                        printf("you printed a char\n");
+                        // load
+                        break;
+                    default:
+                        printf("Invalid character (s) save, (q) quit, (l) load\n");
+                }
+            }
+        } else {
+            if (assert_column_valid(*column, grid)) {
+                is_input_valid = 1;
+            }
+        }
 
         if (!clear_buffer(stdin)) {
             fputs("Failed to clear stdin buffer\n", stderr);
             exit(EXIT_FAILURE);
         }
-
-        if (input != 1) {
-            fputs("Failed to get column. Please retry.\n", stderr);
-            continue;
-        }
-
-        if (!assert_column_valid(*column, grid)) {
-            continue;
-        }
-
-        is_input_valid = 1;
-
     } while(!is_input_valid);
 }
  

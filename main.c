@@ -8,7 +8,7 @@
 #include "rule.h"
 #include "robot.h"
 
-struct player player_collection[] = {{PLAYER_1_ID, PLAYER_1_TOKEN}, {PLAYER_2_ID, PLAYER_2_TOKEN}};
+player player_collection[] = {{PLAYER_1_ID, PLAYER_1_TOKEN}, {PLAYER_2_ID, PLAYER_2_TOKEN}};
 unsigned player_amount = sizeof player_collection / sizeof (struct player);
 static void get_user_input(unsigned* , unsigned (*grid)[GRID_WIDTH], unsigned*, _Bool*);
 static _Bool assert_column_valid(unsigned, unsigned (*grid)[GRID_WIDTH]);
@@ -20,7 +20,7 @@ static void saveGame(unsigned *player_index, _Bool *isMultiplayer, unsigned (*gr
 int main()
 {
     unsigned grid[GRID_HEIGTH][GRID_WIDTH] = {0};
-    struct player winner;
+    player winner;
     unsigned player_index = 0;
     _Bool multiplayer = 0;
 
@@ -31,7 +31,7 @@ int main()
         display_grid(grid);
         
         unsigned column = 0;
-        struct position last_position = {0, 0};
+        position last_position = {0, 0};
 
         if (!multiplayer && player_index == 1) {
             get_robot_input(&column, grid);

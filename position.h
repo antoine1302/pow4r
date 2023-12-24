@@ -1,10 +1,10 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-struct position
+typedef struct position
 {
     int x;
     int y;
-};
+} position;
 
 #endif
